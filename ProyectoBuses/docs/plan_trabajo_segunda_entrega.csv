@@ -1,0 +1,16 @@
+ID,Titulo,HU,Responsable,Rol,Dependencias,Prioridad,EstimacionSP,Inicio,Fin,Estado,Entregable
+T2-001,Refactor autenticacion base,HU-ENTR-1-008,Integrante A,Backend,ninguna,Alta,5,2026-03-16,2026-03-18,Por hacer,Endpoint login robusto con manejo de errores
+T2-002,Registro tradicional con politicas de password,HU-ENTR-1-007,Integrante A,Backend,T2-001,Alta,5,2026-03-18,2026-03-20,Por hacer,Endpoint register + validaciones
+T2-003,OAuth GitHub login y callback,HU-ENTR-1-006,Integrante B,Integraciones,T2-001,Alta,8,2026-03-16,2026-03-21,Por hacer,Flujo OAuth completo con vinculacion
+T2-004,Desvinculacion GitHub y manejo email privado,HU-ENTR-1-006,Integrante B,Integraciones,T2-003,Media,3,2026-03-21,2026-03-22,Por hacer,Endpoint unlink + estado pending email
+T2-005,Middleware JWT y control de permisos por URL,HU-ENTR-1-009,Integrante C,Seguridad,T2-001,Alta,8,2026-03-16,2026-03-21,Por hacer,401 y 403 en rutas protegidas
+T2-006,reCAPTCHA v3 en login,HU-ENTR-1-010,Integrante C,Seguridad,T2-001,Alta,5,2026-03-21,2026-03-23,Por hacer,Validacion siteverify en backend
+T2-007,reCAPTCHA v3 en recuperacion,HU-ENTR-1-011,Integrante C,Seguridad,T2-006,Media,3,2026-03-23,2026-03-24,Por hacer,Validacion captcha en forgot password
+T2-008,2FA por email (OTP 6 digitos),HU-ENTR-1-012,Integrante D,Backend,T2-001,Alta,8,2026-03-18,2026-03-23,Por hacer,Flujo parcial + verificacion OTP
+T2-009,Limite de intentos y expiracion de OTP,HU-ENTR-1-012,Integrante D,Backend,T2-008,Alta,5,2026-03-23,2026-03-24,Por hacer,3 intentos y bloqueo de sesion parcial
+T2-010,Recuperacion de contrasena (forgot/reset),HU-ENTR-1-013,Integrante D,Backend,T2-002;T2-007,Alta,8,2026-03-24,2026-03-27,Por hacer,Token reset 30 min y un solo uso
+T2-011,Servicio de correo y plantillas,HU-ENTR-1-007;HU-ENTR-1-012;HU-ENTR-1-013,Integrante E,Infra,T2-002,Alta,5,2026-03-18,2026-03-21,Por hacer,Envio de confirmacion/OTP/reset
+T2-012,Pruebas unitarias y de integracion auth,HU-ENTR-1-006..013,Integrante F,QA,T2-001;T2-003;T2-005;T2-008;T2-010,Alta,13,2026-03-21,2026-03-28,Por hacer,Suite automatizada + reporte
+T2-013,Tablero y trazabilidad HU->commits->PR,HU-ENTR-1-006..013,Scrum Master,Gestion,ninguna,Alta,3,2026-03-16,2026-03-28,Por hacer,Tablero actualizado y matriz de trazabilidad
+T2-014,Demo tecnica y evidencias mockups,HU-ENTR-1-006..013,Tech Lead,Arquitectura,T2-012,Alta,5,2026-03-28,2026-03-29,Por hacer,Demo final + evidencias para evaluacion
+

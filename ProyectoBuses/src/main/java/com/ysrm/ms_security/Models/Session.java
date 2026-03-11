@@ -15,13 +15,17 @@ public class Session {
     private String token;
     private Date expiration;
     private String code2FA;
+    private Integer otpAttempts;
+    private Boolean otpVerified;
+    private Boolean partialAuth;
+    private Date createdAt;
 
     @DBRef
     private User user;
 
-    public Session(){
-
+    public Session() {
     }
+
     public Session(String token, Date expiration, String code2FA) {
         this.token = token;
         this.expiration = expiration;

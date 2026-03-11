@@ -9,11 +9,9 @@ import com.ysrm.ms_security.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 import java.util.List;
 
 @Service
-
 public class UserService {
 
     @Autowired
@@ -33,12 +31,10 @@ public class UserService {
     }
 
     public User findById(String id) {
-        User theUser = this.theUserRepository.findById(id).orElse(null);
-        return theUser;
+        return this.theUserRepository.findById(id).orElse(null);
     }
 
     public User create(User newUser) {
-        //aqui hacer validacion para que un usuario no este o se cree dos veces
         newUser.setPassword(theEncryptionService.convertSHA256(newUser.getPassword()));
         return this.theUserRepository.save(newUser);
     }
@@ -47,30 +43,28 @@ public class UserService {
         User actualUser = this.theUserRepository.findById(id).orElse(null);
         if (actualUser != null) {
             actualUser.setName(newUser.getName());
+            actualUser.setLastName(newUser.getLastName());
             actualUser.setEmail(newUser.getEmail());
-            actualUser.setPassword(newUser.getPassword());
-            actualUser.setPassword(theEncryptionService.convertSHA256(newUser.getPassword()));
+            if (newUser.getPassword() != null && !newUser.getPassword().isBlank()) {
+                actualUser.setPassword(theEncryptionService.convertSHA256(newUser.getPassword()));
+            }
             this.theUserRepository.save(actualUser);
             return actualUser;
-        } else {
-            return null;
         }
+        return null;
     }
 
     public void delete(String id) {
-        User theUser = this.theUserRepository.findById(id).orElse(null);
-        if (theUser != null) {
-            this.theUserRepository.delete(theUser);
-        }
+        this.theUserRepository.findById(id).ifPresent(this.theUserRepository::delete);
     }
 
     /**
      * Permite asociar un usuario y un perfil. Para que funcione ambos
-     * ya deben de existir en la base de datos
+     * ya deben existir en la base de datos.
      *
-     * @param userId
-     * @param profileId
-     * @return
+     * @param userId identificador del usuario
+     * @param profileId identificador del perfil
+     * @return true si la asociacion fue realizada; false si no existe el usuario o el perfil
      */
     public boolean addProfile(String userId, String profileId) {
         User theUser = this.theUserRepository.findById(userId).orElse(null);
@@ -79,9 +73,8 @@ public class UserService {
             theProfile.setUser(theUser);
             this.theProfileRepository.save(theProfile);
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public boolean removeProfile(String userId, String profileId) {
@@ -91,18 +84,17 @@ public class UserService {
             theProfile.setUser(null);
             this.theProfileRepository.save(theProfile);
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
-     * Permite asociar un usuario y una sesión. Para que funcione ambos
-     * ya deben de existir en la base de datos
+     * Permite asociar un usuario y una sesion. Para que funcione ambos
+     * ya deben existir en la base de datos.
      *
-     * @param userId
-     * @param sessionId
-     * @return
+     * @param userId identificador del usuario
+     * @param sessionId identificador de la sesion
+     * @return true si la asociacion fue realizada; false si no existe el usuario o la sesion
      */
     public boolean addSession(String userId, String sessionId) {
         User theUser = this.theUserRepository.findById(userId).orElse(null);
@@ -111,9 +103,8 @@ public class UserService {
             theSession.setUser(theUser);
             this.theSessionRepository.save(theSession);
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public boolean removeSession(String userId, String sessionId) {
@@ -123,10 +114,7 @@ public class UserService {
             theSession.setUser(null);
             this.theSessionRepository.save(theSession);
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 }
-
-

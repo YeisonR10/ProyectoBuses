@@ -10,8 +10,14 @@ public class User {
     @Id
     private String _id;
     private String name;
+    private String lastName;
     private String email;
     private String password;
+
+    // Campos para HU-006 (login social con GitHub)
+    private String githubId;
+    private String githubUsername;
+    private String githubAvatarUrl;
 
     public User(String name, String email, String password) {
         this.name = name;
@@ -19,7 +25,6 @@ public class User {
         this.password = password;
     }
 
-    public User () {
-
+    public User() {
     }
 }
