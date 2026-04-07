@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @CrossOrigin
@@ -42,5 +43,16 @@ public class UserRoleController {
                     .status(HttpStatus.NOT_FOUND)
                     .body(Map.of("message", "User or Role not found"));
         }
+    }
+
+    @PutMapping("user/{userId}")
+    public ResponseEntity<Map<String, String>> setRolesForUser(
+            @PathVariable String userId,
+            @RequestBody Map<String, List<String>> body) {
+        List<String> roleIds = body == null ? null : body.get("roleIds");
+        boolean ok = this.theUserRoleService.setRolesForUser(userId, roleIds);
+        return ok
+                ? ResponseEntity.ok(Map.of("message", "Success"))
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
     }
 }

@@ -5,10 +5,12 @@ import com.ysrm.ms_security.Models.DTOs.RegisterRequest;
 import com.ysrm.ms_security.Models.DTOs.ResetPasswordRequest;
 import com.ysrm.ms_security.Models.DTOs.TwoFactorVerifyRequest;
 import com.ysrm.ms_security.Models.PasswordResetToken;
+import com.ysrm.ms_security.Models.Role;
 import com.ysrm.ms_security.Models.Session;
 import com.ysrm.ms_security.Models.User;
 import com.ysrm.ms_security.Models.UserRole;
 import com.ysrm.ms_security.Repositories.PasswordResetTokenRepository;
+import com.ysrm.ms_security.Repositories.RoleRepository;
 import com.ysrm.ms_security.Repositories.SessionRepository;
 import com.ysrm.ms_security.Repositories.UserRepository;
 import com.ysrm.ms_security.Repositories.UserRoleRepository;
@@ -30,11 +32,13 @@ public class SecurityService {
     @Autowired
     private UserRoleRepository theUserRoleRepository;
     @Autowired
+    private RoleRepository theRoleRepository;
+    @Autowired
     private SessionRepository theSessionRepository;
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
     @Autowired
-    private EncryptionService theEncryptionService;
+    private PasswordHashService passwordHashService;
     @Autowired
     private JwtService theJwtService;
     @Autowired
@@ -43,6 +47,12 @@ public class SecurityService {
     private CaptchaService captchaService;
     @Autowired
     private GithubOAuthService githubOAuthService;
+    @Autowired
+    private GoogleOAuthService googleOAuthService;
+    @Autowired
+    private MicrosoftOAuthService microsoftOAuthService;
+    @Autowired
+    private EmailService emailService;
 
     @Value("${security.otp.expiration-ms:300000}")
     private Long otpExpirationMs;
@@ -52,6 +62,9 @@ public class SecurityService {
 
     @Value("${security.reset.base-url:https://sistema.com/reset-password?token=}")
     private String resetBaseUrl;
+
+    @Value("${jwt.expiration:3600000}")
+    private Long jwtExpirationMs;
 
     public Map<String, Object> register(RegisterRequest request) {
         Map<String, Object> response = new HashMap<>();
@@ -73,10 +86,11 @@ public class SecurityService {
         user.setName(request.getName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
-        user.setPassword(theEncryptionService.convertSHA256(request.getPassword()));
+        user.setPassword(passwordHashService.hashNew(request.getPassword()));
         theUserRepository.save(user);
+        ensureDefaultCitizenRole(user);
 
-        logAccountCreated(user.getEmail(), user.getName() + " " + Optional.ofNullable(user.getLastName()).orElse(""));
+        emailService.sendAccountCreated(user.getEmail(), user.getName() + " " + Optional.ofNullable(user.getLastName()).orElse(""));
         response.put("message", "Usuario registrado correctamente");
         return response;
     }
@@ -91,9 +105,11 @@ public class SecurityService {
         }
 
         User actualUser = this.theUserRepository.getUserByEmail(email);
-        if (actualUser == null || !actualUser.getPassword().equals(theEncryptionService.convertSHA256(password))) {
+        if (actualUser == null || !passwordHashService.verifyAndUpgradeIfNeeded(actualUser, password)) {
             return error("Email o contrasena incorrectos");
         }
+        // Migra hash legacy si aplica.
+        theUserRepository.save(actualUser);
 
         String code = generateNumericCode(6);
         Session partialSession = new Session();
@@ -106,7 +122,7 @@ public class SecurityService {
         partialSession.setExpiration(new Date(System.currentTimeMillis() + otpExpirationMs));
         theSessionRepository.save(partialSession);
 
-        logTwoFactorCode(actualUser.getEmail(), code);
+        emailService.sendTwoFactorCode(actualUser.getEmail(), code);
 
         Map<String, Object> response = new HashMap<>();
         response.put("requires2FA", true);
@@ -149,7 +165,7 @@ public class SecurityService {
         session.setToken(token);
         session.setPartialAuth(false);
         session.setOtpVerified(true);
-        session.setExpiration(new Date(System.currentTimeMillis() + otpExpirationMs));
+        session.setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs));
         theSessionRepository.save(session);
 
         Map<String, Object> response = new HashMap<>();
@@ -171,7 +187,7 @@ public class SecurityService {
         session.setExpiration(new Date(System.currentTimeMillis() + otpExpirationMs));
         theSessionRepository.save(session);
 
-        logTwoFactorCode(session.getUser().getEmail(), code);
+        emailService.sendTwoFactorCode(session.getUser().getEmail(), code);
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Codigo reenviado correctamente");
@@ -204,7 +220,7 @@ public class SecurityService {
             reset.setUsed(false);
             reset.setExpiration(new Date(System.currentTimeMillis() + resetExpirationMs));
             passwordResetTokenRepository.save(reset);
-            logPasswordReset(user.getEmail(), resetBaseUrl + reset.getToken());
+            emailService.sendPasswordReset(user.getEmail(), resetBaseUrl + reset.getToken());
         }
 
         Map<String, Object> response = new HashMap<>();
@@ -226,7 +242,7 @@ public class SecurityService {
         }
 
         User user = reset.getUser();
-        user.setPassword(theEncryptionService.convertSHA256(request.getPassword()));
+        user.setPassword(passwordHashService.hashNew(request.getPassword()));
         theUserRepository.save(user);
 
         reset.setUsed(true);
@@ -239,6 +255,14 @@ public class SecurityService {
 
     public String getGithubAuthorizeUrl() {
         return githubOAuthService.buildAuthorizeUrl();
+    }
+
+    public String getGoogleAuthorizeUrl() {
+        return googleOAuthService.buildAuthorizeUrl();
+    }
+
+    public String getMicrosoftAuthorizeUrl() {
+        return microsoftOAuthService.buildAuthorizeUrl();
     }
 
     public Map<String, Object> githubCallback(String code, String alternativeEmail) {
@@ -273,15 +297,17 @@ public class SecurityService {
             user = new User();
             user.setEmail(email);
             user.setName(githubName);
-            user.setPassword(theEncryptionService.convertSHA256(UUID.randomUUID().toString()));
+            user.setPassword(passwordHashService.hashNew(UUID.randomUUID().toString()));
         }
 
         user.setGithubId(githubId);
         user.setGithubUsername(githubUsername);
         user.setGithubAvatarUrl(avatar);
         theUserRepository.save(user);
+        ensureDefaultCitizenRole(user);
 
         String token = theJwtService.generateToken(user, getRolesByUser(user));
+        createSessionForToken(user, token);
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
         response.put("githubUsername", githubUsername);
@@ -302,6 +328,114 @@ public class SecurityService {
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Cuenta GitHub desvinculada");
         return response;
+    }
+
+    public Map<String, Object> googleCallback(String code) {
+        String accessToken = googleOAuthService.exchangeCodeForAccessToken(code);
+        if (accessToken == null) {
+            return error("No fue posible autenticar con Google");
+        }
+
+        Map<String, Object> info = googleOAuthService.getUserInfo(accessToken);
+        if (info == null) {
+            return error("No fue posible obtener perfil de Google");
+        }
+
+        String googleId = info.get("sub") == null ? null : info.get("sub").toString();
+        String email = info.get("email") == null ? null : info.get("email").toString();
+        String name = info.get("name") == null ? null : info.get("name").toString();
+        String picture = info.get("picture") == null ? null : info.get("picture").toString();
+
+        if (email == null || email.isBlank()) {
+            return error("Google no compartio email");
+        }
+
+        User user = googleId == null ? null : theUserRepository.getUserByGoogleId(googleId);
+        if (user == null) {
+            user = theUserRepository.getUserByEmail(email);
+        }
+        if (user == null) {
+            user = new User();
+            user.setEmail(email);
+            user.setName(name);
+            user.setPassword(passwordHashService.hashNew(UUID.randomUUID().toString()));
+        }
+
+        user.setGoogleId(googleId);
+        user.setGoogleAvatarUrl(picture);
+        theUserRepository.save(user);
+        ensureDefaultCitizenRole(user);
+
+        String token = theJwtService.generateToken(user, getRolesByUser(user));
+        createSessionForToken(user, token);
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        return response;
+    }
+
+    public Map<String, Object> unlinkGoogle(String userId) {
+        User user = theUserRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return error("Usuario no encontrado");
+        }
+        user.setGoogleId(null);
+        user.setGoogleAvatarUrl(null);
+        theUserRepository.save(user);
+        return Map.of("message", "Cuenta Google desvinculada");
+    }
+
+    public Map<String, Object> microsoftCallback(String code) {
+        String accessToken = microsoftOAuthService.exchangeCodeForAccessToken(code);
+        if (accessToken == null) {
+            return error("No fue posible autenticar con Microsoft");
+        }
+
+        Map<String, Object> profile = microsoftOAuthService.getMicrosoftProfile(accessToken);
+        if (profile == null) {
+            return error("No fue posible obtener perfil de Microsoft");
+        }
+
+        String microsoftId = profile.get("id") == null ? null : profile.get("id").toString();
+        String displayName = profile.get("displayName") == null ? null : profile.get("displayName").toString();
+        String email = profile.get("mail") == null ? null : profile.get("mail").toString();
+        if (email == null || email.isBlank()) {
+            // En cuentas organizacionales, a veces viene aqui.
+            email = profile.get("userPrincipalName") == null ? null : profile.get("userPrincipalName").toString();
+        }
+
+        if (email == null || email.isBlank()) {
+            return error("Microsoft no compartio email");
+        }
+
+        User user = microsoftId == null ? null : theUserRepository.getUserByMicrosoftId(microsoftId);
+        if (user == null) {
+            user = theUserRepository.getUserByEmail(email);
+        }
+        if (user == null) {
+            user = new User();
+            user.setEmail(email);
+            user.setName(displayName);
+            user.setPassword(passwordHashService.hashNew(UUID.randomUUID().toString()));
+        }
+
+        user.setMicrosoftId(microsoftId);
+        theUserRepository.save(user);
+        ensureDefaultCitizenRole(user);
+
+        String token = theJwtService.generateToken(user, getRolesByUser(user));
+        createSessionForToken(user, token);
+        return Map.of("token", token);
+    }
+
+    public Map<String, Object> unlinkMicrosoft(String userId) {
+        User user = theUserRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return error("Usuario no encontrado");
+        }
+        user.setMicrosoftId(null);
+        user.setMicrosoftAvatarUrl(null);
+        theUserRepository.save(user);
+        return Map.of("message", "Cuenta Microsoft desvinculada");
     }
 
     private List<String> getRolesByUser(User user) {
@@ -344,15 +478,41 @@ public class SecurityService {
         return maskedLocal + "@***." + domain.substring(Math.max(domain.lastIndexOf('.') + 1, 0));
     }
 
+    // Se mantiene el logger por si se requiere diagnostico,
+    // pero los flujos de correo ya usan EmailService (que tambien hace fallback a logs).
     private void logAccountCreated(String email, String fullName) {
         LOGGER.info("[MAIL] Cuenta creada para {} ({})", fullName, email);
     }
 
-    private void logTwoFactorCode(String email, String code) {
-        LOGGER.info("[MAIL] Codigo 2FA para {}: {}", email, code);
+    /**
+     * Para cuentas nuevas, asigna un rol base para que el usuario tenga permisos minimos.
+     */
+    private void ensureDefaultCitizenRole(User user) {
+        if (user == null || user.get_id() == null) {
+            return;
+        }
+        Role citizen = theRoleRepository.findByName("Ciudadano");
+        if (citizen == null || citizen.getId() == null) {
+            return;
+        }
+        UserRole existing = theUserRoleRepository.findByUserIdAndRoleId(user.get_id(), citizen.getId());
+        if (existing != null) {
+            return;
+        }
+        theUserRoleRepository.save(new UserRole(user, citizen));
     }
 
-    private void logPasswordReset(String email, String resetUrl) {
-        LOGGER.info("[MAIL] Recuperacion de password para {}: {}", email, resetUrl);
+    private void createSessionForToken(User user, String token) {
+        if (user == null || user.get_id() == null || token == null || token.isBlank()) {
+            return;
+        }
+        Session s = new Session();
+        s.setUser(user);
+        s.setToken(token);
+        s.setPartialAuth(false);
+        s.setOtpVerified(true);
+        s.setCreatedAt(new Date());
+        s.setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs));
+        theSessionRepository.save(s);
     }
 }

@@ -81,6 +81,20 @@ public class SecurityController {
         return response;
     }
 
+    @GetMapping("/oauth/google/url")
+    public Map<String, Object> googleAuthorizeUrl() {
+        HashMap<String, Object> response = new HashMap<>();
+        response.put("url", this.theSecurityService.getGoogleAuthorizeUrl());
+        return response;
+    }
+
+    @GetMapping("/oauth/microsoft/url")
+    public Map<String, Object> microsoftAuthorizeUrl() {
+        HashMap<String, Object> response = new HashMap<>();
+        response.put("url", this.theSecurityService.getMicrosoftAuthorizeUrl());
+        return response;
+    }
+
     @GetMapping("/oauth/github/callback")
     public ResponseEntity<Map<String, Object>> githubCallback(
             @RequestParam String code,
@@ -94,6 +108,38 @@ public class SecurityController {
     @DeleteMapping("/oauth/github/unlink/{userId}")
     public ResponseEntity<Map<String, Object>> unlinkGithub(@PathVariable String userId) {
         Map<String, Object> response = this.theSecurityService.unlinkGithub(userId);
+        return response.containsKey("error")
+                ? ResponseEntity.status(HttpStatus.NOT_FOUND).body(response)
+                : ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/oauth/google/callback")
+    public ResponseEntity<Map<String, Object>> googleCallback(@RequestParam String code) {
+        Map<String, Object> response = this.theSecurityService.googleCallback(code);
+        return response.containsKey("error")
+                ? ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response)
+                : ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/oauth/google/unlink/{userId}")
+    public ResponseEntity<Map<String, Object>> unlinkGoogle(@PathVariable String userId) {
+        Map<String, Object> response = this.theSecurityService.unlinkGoogle(userId);
+        return response.containsKey("error")
+                ? ResponseEntity.status(HttpStatus.NOT_FOUND).body(response)
+                : ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/oauth/microsoft/callback")
+    public ResponseEntity<Map<String, Object>> microsoftCallback(@RequestParam String code) {
+        Map<String, Object> response = this.theSecurityService.microsoftCallback(code);
+        return response.containsKey("error")
+                ? ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response)
+                : ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/oauth/microsoft/unlink/{userId}")
+    public ResponseEntity<Map<String, Object>> unlinkMicrosoft(@PathVariable String userId) {
+        Map<String, Object> response = this.theSecurityService.unlinkMicrosoft(userId);
         return response.containsKey("error")
                 ? ResponseEntity.status(HttpStatus.NOT_FOUND).body(response)
                 : ResponseEntity.ok(response);

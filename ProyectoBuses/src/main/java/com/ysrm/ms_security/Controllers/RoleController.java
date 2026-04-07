@@ -1,11 +1,15 @@
 package com.ysrm.ms_security.Controllers;
 
 import com.ysrm.ms_security.Models.Role;
+import com.ysrm.ms_security.Models.DTOs.RolePermissionsRequest;
 import com.ysrm.ms_security.Services.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin
 @RestController
@@ -35,8 +39,23 @@ public class RoleController {
         return this.theRoleService.update(id, newRole);
     }
 
+    @PutMapping("{id}/permissions")
+    public ResponseEntity<?> updatePermissions(@PathVariable String id, @RequestBody RolePermissionsRequest request) {
+        Role updated = this.theRoleService.updatePermissions(id, request);
+        return updated == null
+                ? ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Rol no encontrado"))
+                : ResponseEntity.ok(updated);
+    }
+
     @DeleteMapping("{id}")
-    public void delete(@PathVariable String id) {
-        this.theRoleService.delete(id);
+    public ResponseEntity<?> delete(@PathVariable String id) {
+        try {
+            boolean deleted = this.theRoleService.delete(id);
+            return deleted
+                    ? ResponseEntity.ok(Map.of("message", "Rol eliminado"))
+                    : ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Rol no encontrado"));
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
+        }
     }
 }

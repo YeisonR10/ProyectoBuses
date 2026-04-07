@@ -19,6 +19,14 @@ public class User {
     private String githubUsername;
     private String githubAvatarUrl;
 
+    // Campos para HU-ENTR-1-004 (Google)
+    private String googleId;
+    private String googleAvatarUrl;
+
+    // Campos para HU-ENTR-1-005 (Microsoft)
+    private String microsoftId;
+    private String microsoftAvatarUrl;
+
     public User(String name, String email, String password) {
         this.name = name;
         this.email = email;
