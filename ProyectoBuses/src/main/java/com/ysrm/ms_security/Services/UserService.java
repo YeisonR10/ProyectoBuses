@@ -24,7 +24,7 @@ public class UserService {
     private SessionRepository theSessionRepository;
 
     @Autowired
-    private EncryptionService theEncryptionService;
+    private PasswordHashService passwordHashService;
 
     public List<User> find() {
         return this.theUserRepository.findAll();
@@ -35,7 +35,7 @@ public class UserService {
     }
 
     public User create(User newUser) {
-        newUser.setPassword(theEncryptionService.convertSHA256(newUser.getPassword()));
+        newUser.setPassword(passwordHashService.hashNew(newUser.getPassword()));
         return this.theUserRepository.save(newUser);
     }
 
@@ -46,7 +46,7 @@ public class UserService {
             actualUser.setLastName(newUser.getLastName());
             actualUser.setEmail(newUser.getEmail());
             if (newUser.getPassword() != null && !newUser.getPassword().isBlank()) {
-                actualUser.setPassword(theEncryptionService.convertSHA256(newUser.getPassword()));
+                actualUser.setPassword(passwordHashService.hashNew(newUser.getPassword()));
             }
             this.theUserRepository.save(actualUser);
             return actualUser;
