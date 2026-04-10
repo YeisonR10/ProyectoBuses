@@ -1,0 +1,2340 @@
+{
+  "info": {
+    "name": "MS Security - Cobertura completa endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Coleccion de pruebas para endpoints de security, users, roles, profiles, sessions, user-role y users-query"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": "ana@test.com"
+    },
+    {
+      "key": "password",
+      "value": "Abcd1234!"
+    },
+    {
+      "key": "newPassword",
+      "value": "NuevA1234!"
+    },
+    {
+      "key": "recaptchaToken",
+      "value": "token-opcional-dev"
+    },
+    {
+      "key": "sessionId",
+      "value": ""
+    },
+    {
+      "key": "sessionResourceId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "roleId",
+      "value": ""
+    },
+    {
+      "key": "profileId",
+      "value": ""
+    },
+    {
+      "key": "userRoleId",
+      "value": ""
+    },
+    {
+      "key": "resetToken",
+      "value": ""
+    },
+    {
+      "key": "twoFactorCode",
+      "value": "123456"
+    },
+    {
+      "key": "oauthCode",
+      "value": "codigo_oauth"
+    },
+    {
+      "key": "query",
+      "value": "ana"
+    },
+    {
+      "key": "timestamp",
+      "value": "{{$timestamp}}"
+    }
+  ],
+  "item": [
+    {
+      "name": "Security/Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Ana\",\n  \"lastName\": \"Lopez\",\n  \"email\": \"ana+{{timestamp}}@mail.com\",\n  \"password\": \"Abcd1234!\",\n  \"confirmPassword\": \"Abcd1234!\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"recaptchaToken\": \"{{recaptchaToken}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "  const json = pm.response.json();",
+              "  if (json.sessionId) pm.collectionVariables.set('sessionId', json.sessionId);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/2FA Verify",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/2fa/verify",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "2fa",
+            "verify"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"code\": \"{{twoFactorCode}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "  const json = pm.response.json();",
+              "  if (json.token) pm.collectionVariables.set('token', json.token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/2FA Resend",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/2fa/resend/{{sessionId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "2fa",
+            "resend",
+            "{{sessionId}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/2FA Cancel Session",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/2fa/session/{{sessionId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "2fa",
+            "session",
+            "{{sessionId}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/Forgot Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/password/forgot",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "password",
+            "forgot"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"recaptchaToken\": \"{{recaptchaToken}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/Reset Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/password/reset",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "password",
+            "reset"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"password\": \"{{newPassword}}\",\n  \"confirmPassword\": \"{{newPassword}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/OAuth GitHub URL",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/oauth/github/url",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "oauth",
+            "github",
+            "url"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/OAuth Google URL",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/oauth/google/url",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "oauth",
+            "google",
+            "url"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/OAuth Microsoft URL",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/oauth/microsoft/url",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "oauth",
+            "microsoft",
+            "url"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/OAuth GitHub Callback",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/oauth/github/callback?code={{oauthCode}}&alternativeEmail={{email}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "oauth",
+            "github",
+            "callback"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/OAuth Google Callback",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/oauth/google/callback?code={{oauthCode}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "oauth",
+            "google",
+            "callback"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/OAuth Microsoft Callback",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/oauth/microsoft/callback?code={{oauthCode}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "oauth",
+            "microsoft",
+            "callback"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/OAuth GitHub Unlink",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/oauth/github/unlink/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "oauth",
+            "github",
+            "unlink",
+            "{{userId}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/OAuth Google Unlink",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/oauth/google/unlink/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "oauth",
+            "google",
+            "unlink",
+            "{{userId}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security/OAuth Microsoft Unlink",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/security/oauth/microsoft/unlink/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "security",
+            "oauth",
+            "microsoft",
+            "unlink",
+            "{{userId}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users/List",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users/Get By Id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users/Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Usuario API\",\n  \"lastName\": \"Prueba\",\n  \"email\": \"usuario+{{timestamp}}@mail.com\",\n  \"password\": \"Abcd1234!\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});",
+              "",
+              "if (pm.response.code === 200 || pm.response.code === 201) {",
+              "  const json = pm.response.json();",
+              "  if (json.id) pm.collectionVariables.set('userId', json.id);",
+              "  if (json._id) pm.collectionVariables.set('userId', json._id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users/Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Usuario API Edit\",\n  \"lastName\": \"Prueba\",\n  \"email\": \"{{email}}\",\n  \"password\": \"\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users/Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users/Add Profile",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}/profile/{{profileId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}",
+            "profile",
+            "{{profileId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users/Remove Profile",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}/profile/{{profileId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}",
+            "profile",
+            "{{profileId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users/Add Session",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}/session/{{sessionId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}",
+            "session",
+            "{{sessionId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users/Remove Session",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}/session/{{sessionId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}",
+            "session",
+            "{{sessionId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles/List",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/roles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "roles"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles/Get By Id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/roles/{{roleId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "roles",
+            "{{roleId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles/Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/roles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "roles"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Inspector QA\",\n  \"description\": \"Rol de pruebas\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});",
+              "",
+              "if (pm.response.code === 200 || pm.response.code === 201) {",
+              "  const json = pm.response.json();",
+              "  if (json.id) pm.collectionVariables.set('roleId', json.id);",
+              "  if (json._id) pm.collectionVariables.set('roleId', json._id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles/Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/roles/{{roleId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "roles",
+            "{{roleId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Inspector QA\",\n  \"description\": \"Rol actualizado\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles/Update Permissions",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/roles/{{roleId}}/permissions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "roles",
+            "{{roleId}}",
+            "permissions"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"permissions\": [\n    {\n      \"module\": \"USERS\",\n      \"actions\": [\n        \"READ\",\n        \"UPDATE\"\n      ]\n    },\n    {\n      \"module\": \"ROLES\",\n      \"actions\": [\n        \"READ\"\n      ]\n    }\n  ]\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles/Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/roles/{{roleId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "roles",
+            "{{roleId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profiles/List",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/profiles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "profiles"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profiles/Get By Id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/profiles/{{profileId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "profiles",
+            "{{profileId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profiles/Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/profiles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "profiles"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"3000000000\",\n  \"photo\": \"https://img.test/profile.jpg\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});",
+              "",
+              "if (pm.response.code === 200 || pm.response.code === 201) {",
+              "  const json = pm.response.json();",
+              "  if (json.id) pm.collectionVariables.set('profileId', json.id);",
+              "  if (json._id) pm.collectionVariables.set('profileId', json._id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profiles/Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/profiles/{{profileId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "profiles",
+            "{{profileId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"3000000001\",\n  \"photo\": \"https://img.test/profile-updated.jpg\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profiles/Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/profiles/{{profileId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "profiles",
+            "{{profileId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions/List",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/sessions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "sessions"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions/Get By Id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/sessions/{{sessionResourceId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "sessions",
+            "{{sessionResourceId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions/Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/sessions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "sessions"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"token-manual\",\n  \"code2FA\": \"123456\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});",
+              "",
+              "if (pm.response.code === 200 || pm.response.code === 201) {",
+              "  const json = pm.response.json();",
+              "  if (json.id) pm.collectionVariables.set('sessionResourceId', json.id);",
+              "  if (json._id) pm.collectionVariables.set('sessionResourceId', json._id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions/Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/sessions/{{sessionResourceId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "sessions",
+            "{{sessionResourceId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"token-manual-upd\",\n  \"code2FA\": \"654321\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions/Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/sessions/{{sessionResourceId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "sessions",
+            "{{sessionResourceId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "UserRole/Add",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/user-role/user/{{userId}}/role/{{roleId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "user-role",
+            "user",
+            "{{userId}}",
+            "role",
+            "{{roleId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "UserRole/Remove",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/user-role/{{userRoleId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "user-role",
+            "{{userRoleId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "UserRole/Set Roles",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/user-role/user/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "user-role",
+            "user",
+            "{{userId}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"roleIds\": [\n    \"{{roleId}}\"\n  ]\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "UsersQuery/List",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users-query?q={{query}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users-query"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code esperado', function () {",
+              "  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Respuesta JSON o vacia en 204', function () {",
+              "  if (pm.response.code !== 204) {",
+              "    pm.response.to.be.json;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,18 +1,34 @@
 # ms-security
 
-Backend Spring Boot para la primera entrega de autenticacion y seguridad.
+Microservicio Spring Boot para autenticacion, autorizacion y gestion basica de usuarios/roles sobre MongoDB.
 
-## HU cubiertas en esta base
-- HU-ENTR-1-006: OAuth GitHub
-- HU-ENTR-1-007: Registro con email y contrasena
-- HU-ENTR-1-008: Login con email y contrasena
-- HU-ENTR-1-009: Validacion JWT y proteccion de rutas
-- HU-ENTR-1-010: reCAPTCHA en login
-- HU-ENTR-1-011: reCAPTCHA en recuperacion
-- HU-ENTR-1-012: Verificacion 2FA por codigo
-- HU-ENTR-1-013: Recuperacion de contrasena
+## Que hace actualmente el software
 
-## Endpoints principales
+El servicio expone APIs para:
+
+- Registro de usuarios con validacion de politica de contrasena
+- Login con correo/contrasena + flujo de 2FA por codigo enviado por email
+- Recuperacion de contrasena con token temporal
+- Login social por OAuth (GitHub, Google y Microsoft)
+- Emision y validacion de JWT con sesion persistida/revocable en base de datos
+- Gestion CRUD de usuarios, roles, perfiles y sesiones
+- Asignacion de roles a usuarios y consulta de usuarios con sus roles
+- Autorizacion por permisos granulares en endpoints protegidos
+
+## Modulos principales
+
+- `security`: autenticacion, 2FA, recuperacion y OAuth
+- `users`: gestion de usuarios y asociaciones con perfiles/sesiones
+- `roles`: gestion de roles y permisos
+- `user-role`: asignacion y actualizacion de roles por usuario
+- `profiles`: CRUD de perfiles
+- `sessions`: CRUD de sesiones
+- `users-query`: listado de usuarios con sus roles
+
+## Endpoints principales por controlador
+
+### `SecurityController` (`/security`)
+
 - `POST /security/register`
 - `POST /security/login`
 - `POST /security/2fa/verify`
@@ -21,61 +37,109 @@ Backend Spring Boot para la primera entrega de autenticacion y seguridad.
 - `POST /security/password/forgot`
 - `POST /security/password/reset`
 - `GET /security/oauth/github/url`
+- `GET /security/oauth/google/url`
+- `GET /security/oauth/microsoft/url`
 - `GET /security/oauth/github/callback`
+- `GET /security/oauth/google/callback`
+- `GET /security/oauth/microsoft/callback`
 - `DELETE /security/oauth/github/unlink/{userId}`
+- `DELETE /security/oauth/google/unlink/{userId}`
+- `DELETE /security/oauth/microsoft/unlink/{userId}`
 
-## Payloads basicos
-### Registro
-```json
-{
-  "name": "Ana",
-  "lastName": "Lopez",
-  "email": "ana@test.com",
-  "password": "Abcd1234!",
-  "confirmPassword": "Abcd1234!"
-}
+### `UserController` (`/users`)
+
+- `GET /users`
+- `GET /users/{id}`
+- `POST /users`
+- `PUT /users/{id}`
+- `DELETE /users/{id}`
+- `POST /users/{userId}/profile/{profileId}`
+- `DELETE /users/{userId}/profile/{profileId}`
+- `POST /users/{userId}/session/{sessionId}`
+- `DELETE /users/{userId}/session/{sessionId}`
+
+### `RoleController` (`/roles`)
+
+- `GET /roles`
+- `GET /roles/{id}`
+- `POST /roles`
+- `PUT /roles/{id}`
+- `PUT /roles/{id}/permissions`
+- `DELETE /roles/{id}`
+
+### Otros controladores
+
+- `ProfileController` (`/profiles`): CRUD completo
+- `SessionController` (`/sessions`): CRUD completo
+- `UserRoleController` (`/user-role`): asignar/remover/reemplazar roles
+- `UserQueryController` (`/users-query`): listado con filtro `q`
+
+## Seguridad de acceso
+
+- Rutas excluidas del interceptor JWT: `/security/**` y `/error`
+- Rutas protegidas: el resto de endpoints exige `Authorization: Bearer <token>`
+- Validaciones de sesion: token JWT valido + sesion vigente en BD
+- Permisos granulares por modulo/accion en:
+  - `/roles/**`
+  - `/user-role/**`
+  - `/users/**`
+  - `/users-query/**`
+
+## Pruebas en Postman
+
+Se incluyeron artefactos en `docs/postman`:
+
+- `docs/postman/ms-security.postman_collection.json` (importable directamente en Postman)
+- `docs/postman/ms-security.postman_environment.json`
+- `docs/postman/ms-security.postman_collection.xml` (representacion XML equivalente)
+
+La coleccion cubre 44 requests (todos los endpoints de los controladores detectados) y contiene scripts de test basicos por request.
+
+## Revision tecnica completa
+
+Se documento una revision detallada en:
+
+- `docs/REVISION_COMPLETA.md`
+
+Incluye hallazgos, riesgos y recomendaciones priorizadas.
+
+## Ejecucion local
+
+Requisitos:
+
+- Java 17
+- MongoDB accesible
+
+Comandos:
+
+```bash
+./mvnw spring-boot:run
+./mvnw test
 ```
 
-### Login
-```json
-{
-  "email": "ana@test.com",
-  "password": "Abcd1234!",
-  "recaptchaToken": "token-opcional-en-dev"
-}
-```
+En Windows PowerShell:
 
-### Verificacion 2FA
-```json
-{
-  "sessionId": "ID_SESION_PARCIAL",
-  "code": "123456"
-}
+```powershell
+.\mvnw.cmd spring-boot:run
+.\mvnw.cmd test
 ```
 
 ## Configuracion relevante
-Revisa `src/main/resources/application.properties`.
 
-Variables importantes:
+Archivo: `src/main/resources/application.properties`
+
+- `spring.data.mongodb.uri`
+- `spring.data.mongodb.database`
+- `server.port`
 - `jwt.secret`
 - `jwt.expiration`
 - `captcha.enabled`
 - `captcha.secret`
 - `security.otp.expiration-ms`
 - `security.reset.expiration-ms`
-- `github.client-id`
-- `github.client-secret`
-- `github.redirect-uri`
+- `security.reset.base-url`
+- `github.client-*`, `google.client-*`, `microsoft.client-*`
 
-## Notas
-- En desarrollo, `captcha.enabled=false` permite probar sin Google reCAPTCHA.
-- El envio de correo se deja trazado por log para facilitar demo local.
-- Las rutas administrativas (`/roles`, `/user-role`, `/admin`) exigen rol `ADMIN` via JWT.
-- El login devuelve `sessionId`, `maskedEmail` y tiempo restante para completar el 2FA.
+## Estado de pruebas en este entorno
 
-## Estado de build en este entorno
-No fue posible ejecutar `mvn test` aqui porque:
-1. el proyecto no incluye la carpeta `.mvn/wrapper`, y
-2. `mvn` no esta instalado en la terminal disponible.
-
-Aun asi, se corrigieron errores de analisis estatico del IDE y se dejaron pruebas unitarias listas para ejecutar cuando Maven este disponible.
+Se ejecutaron pruebas con Maven Wrapper y se generaron reportes en `target/surefire-reports`.

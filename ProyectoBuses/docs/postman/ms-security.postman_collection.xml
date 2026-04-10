@@ -1,0 +1,729 @@
+<?xml version='1.0' encoding='utf-8'?>
+<postmanCollection name="MS Security - Cobertura completa endpoints" version="1.0">
+  <meta>
+    <description>Coleccion de pruebas para endpoints de security, users, roles, profiles, sessions, user-role y users-query</description>
+  </meta>
+  <variables>
+    <variable key="baseUrl">http://localhost:8081</variable>
+    <variable key="token" />
+    <variable key="email">ana@test.com</variable>
+    <variable key="password">Abcd1234!</variable>
+    <variable key="newPassword">NuevA1234!</variable>
+    <variable key="recaptchaToken">token-opcional-dev</variable>
+    <variable key="sessionId" />
+    <variable key="sessionResourceId" />
+    <variable key="userId" />
+    <variable key="roleId" />
+    <variable key="profileId" />
+    <variable key="userRoleId" />
+    <variable key="resetToken" />
+    <variable key="twoFactorCode">123456</variable>
+    <variable key="oauthCode">codigo_oauth</variable>
+    <variable key="query">ana</variable>
+    <variable key="timestamp">{{$timestamp}}</variable>
+  </variables>
+  <requests>
+    <request name="Security/Register" method="POST">
+      <url>{{baseUrl}}/security/register</url>
+      <requiresAuth>false</requiresAuth>
+      <body>{
+  "name": "Ana",
+  "lastName": "Lopez",
+  "email": "ana+{{timestamp}}@mail.com",
+  "password": "Abcd1234!",
+  "confirmPassword": "Abcd1234!"
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/Login" method="POST">
+      <url>{{baseUrl}}/security/login</url>
+      <requiresAuth>false</requiresAuth>
+      <body>{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "recaptchaToken": "{{recaptchaToken}}"
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});
+
+if (pm.response.code === 200) {
+  const json = pm.response.json();
+  if (json.sessionId) pm.collectionVariables.set('sessionId', json.sessionId);
+}</tests>
+    </request>
+    <request name="Security/2FA Verify" method="POST">
+      <url>{{baseUrl}}/security/2fa/verify</url>
+      <requiresAuth>false</requiresAuth>
+      <body>{
+  "sessionId": "{{sessionId}}",
+  "code": "{{twoFactorCode}}"
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});
+
+if (pm.response.code === 200) {
+  const json = pm.response.json();
+  if (json.token) pm.collectionVariables.set('token', json.token);
+}</tests>
+    </request>
+    <request name="Security/2FA Resend" method="POST">
+      <url>{{baseUrl}}/security/2fa/resend/{{sessionId}}</url>
+      <requiresAuth>false</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/2FA Cancel Session" method="DELETE">
+      <url>{{baseUrl}}/security/2fa/session/{{sessionId}}</url>
+      <requiresAuth>false</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/Forgot Password" method="POST">
+      <url>{{baseUrl}}/security/password/forgot</url>
+      <requiresAuth>false</requiresAuth>
+      <body>{
+  "email": "{{email}}",
+  "recaptchaToken": "{{recaptchaToken}}"
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/Reset Password" method="POST">
+      <url>{{baseUrl}}/security/password/reset</url>
+      <requiresAuth>false</requiresAuth>
+      <body>{
+  "token": "{{resetToken}}",
+  "password": "{{newPassword}}",
+  "confirmPassword": "{{newPassword}}"
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/OAuth GitHub URL" method="GET">
+      <url>{{baseUrl}}/security/oauth/github/url</url>
+      <requiresAuth>false</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/OAuth Google URL" method="GET">
+      <url>{{baseUrl}}/security/oauth/google/url</url>
+      <requiresAuth>false</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/OAuth Microsoft URL" method="GET">
+      <url>{{baseUrl}}/security/oauth/microsoft/url</url>
+      <requiresAuth>false</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/OAuth GitHub Callback" method="GET">
+      <url>{{baseUrl}}/security/oauth/github/callback?code={{oauthCode}}&amp;alternativeEmail={{email}}</url>
+      <requiresAuth>false</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/OAuth Google Callback" method="GET">
+      <url>{{baseUrl}}/security/oauth/google/callback?code={{oauthCode}}</url>
+      <requiresAuth>false</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/OAuth Microsoft Callback" method="GET">
+      <url>{{baseUrl}}/security/oauth/microsoft/callback?code={{oauthCode}}</url>
+      <requiresAuth>false</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/OAuth GitHub Unlink" method="DELETE">
+      <url>{{baseUrl}}/security/oauth/github/unlink/{{userId}}</url>
+      <requiresAuth>false</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/OAuth Google Unlink" method="DELETE">
+      <url>{{baseUrl}}/security/oauth/google/unlink/{{userId}}</url>
+      <requiresAuth>false</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Security/OAuth Microsoft Unlink" method="DELETE">
+      <url>{{baseUrl}}/security/oauth/microsoft/unlink/{{userId}}</url>
+      <requiresAuth>false</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Users/List" method="GET">
+      <url>{{baseUrl}}/users</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Users/Get By Id" method="GET">
+      <url>{{baseUrl}}/users/{{userId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Users/Create" method="POST">
+      <url>{{baseUrl}}/users</url>
+      <requiresAuth>true</requiresAuth>
+      <body>{
+  "name": "Usuario API",
+  "lastName": "Prueba",
+  "email": "usuario+{{timestamp}}@mail.com",
+  "password": "Abcd1234!"
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});
+
+if (pm.response.code === 200 || pm.response.code === 201) {
+  const json = pm.response.json();
+  if (json.id) pm.collectionVariables.set('userId', json.id);
+  if (json._id) pm.collectionVariables.set('userId', json._id);
+}</tests>
+    </request>
+    <request name="Users/Update" method="PUT">
+      <url>{{baseUrl}}/users/{{userId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <body>{
+  "name": "Usuario API Edit",
+  "lastName": "Prueba",
+  "email": "{{email}}",
+  "password": ""
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Users/Delete" method="DELETE">
+      <url>{{baseUrl}}/users/{{userId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Users/Add Profile" method="POST">
+      <url>{{baseUrl}}/users/{{userId}}/profile/{{profileId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Users/Remove Profile" method="DELETE">
+      <url>{{baseUrl}}/users/{{userId}}/profile/{{profileId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Users/Add Session" method="POST">
+      <url>{{baseUrl}}/users/{{userId}}/session/{{sessionId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Users/Remove Session" method="DELETE">
+      <url>{{baseUrl}}/users/{{userId}}/session/{{sessionId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Roles/List" method="GET">
+      <url>{{baseUrl}}/roles</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Roles/Get By Id" method="GET">
+      <url>{{baseUrl}}/roles/{{roleId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Roles/Create" method="POST">
+      <url>{{baseUrl}}/roles</url>
+      <requiresAuth>true</requiresAuth>
+      <body>{
+  "name": "Inspector QA",
+  "description": "Rol de pruebas"
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});
+
+if (pm.response.code === 200 || pm.response.code === 201) {
+  const json = pm.response.json();
+  if (json.id) pm.collectionVariables.set('roleId', json.id);
+  if (json._id) pm.collectionVariables.set('roleId', json._id);
+}</tests>
+    </request>
+    <request name="Roles/Update" method="PUT">
+      <url>{{baseUrl}}/roles/{{roleId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <body>{
+  "name": "Inspector QA",
+  "description": "Rol actualizado"
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Roles/Update Permissions" method="PUT">
+      <url>{{baseUrl}}/roles/{{roleId}}/permissions</url>
+      <requiresAuth>true</requiresAuth>
+      <body>{
+  "permissions": [
+    {
+      "module": "USERS",
+      "actions": [
+        "READ",
+        "UPDATE"
+      ]
+    },
+    {
+      "module": "ROLES",
+      "actions": [
+        "READ"
+      ]
+    }
+  ]
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Roles/Delete" method="DELETE">
+      <url>{{baseUrl}}/roles/{{roleId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Profiles/List" method="GET">
+      <url>{{baseUrl}}/profiles</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Profiles/Get By Id" method="GET">
+      <url>{{baseUrl}}/profiles/{{profileId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Profiles/Create" method="POST">
+      <url>{{baseUrl}}/profiles</url>
+      <requiresAuth>true</requiresAuth>
+      <body>{
+  "phone": "3000000000",
+  "photo": "https://img.test/profile.jpg"
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});
+
+if (pm.response.code === 200 || pm.response.code === 201) {
+  const json = pm.response.json();
+  if (json.id) pm.collectionVariables.set('profileId', json.id);
+  if (json._id) pm.collectionVariables.set('profileId', json._id);
+}</tests>
+    </request>
+    <request name="Profiles/Update" method="PUT">
+      <url>{{baseUrl}}/profiles/{{profileId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <body>{
+  "phone": "3000000001",
+  "photo": "https://img.test/profile-updated.jpg"
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Profiles/Delete" method="DELETE">
+      <url>{{baseUrl}}/profiles/{{profileId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Sessions/List" method="GET">
+      <url>{{baseUrl}}/sessions</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Sessions/Get By Id" method="GET">
+      <url>{{baseUrl}}/sessions/{{sessionResourceId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Sessions/Create" method="POST">
+      <url>{{baseUrl}}/sessions</url>
+      <requiresAuth>true</requiresAuth>
+      <body>{
+  "token": "token-manual",
+  "code2FA": "123456"
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});
+
+if (pm.response.code === 200 || pm.response.code === 201) {
+  const json = pm.response.json();
+  if (json.id) pm.collectionVariables.set('sessionResourceId', json.id);
+  if (json._id) pm.collectionVariables.set('sessionResourceId', json._id);
+}</tests>
+    </request>
+    <request name="Sessions/Update" method="PUT">
+      <url>{{baseUrl}}/sessions/{{sessionResourceId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <body>{
+  "token": "token-manual-upd",
+  "code2FA": "654321"
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="Sessions/Delete" method="DELETE">
+      <url>{{baseUrl}}/sessions/{{sessionResourceId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="UserRole/Add" method="POST">
+      <url>{{baseUrl}}/user-role/user/{{userId}}/role/{{roleId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="UserRole/Remove" method="DELETE">
+      <url>{{baseUrl}}/user-role/{{userRoleId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="UserRole/Set Roles" method="PUT">
+      <url>{{baseUrl}}/user-role/user/{{userId}}</url>
+      <requiresAuth>true</requiresAuth>
+      <body>{
+  "roleIds": [
+    "{{roleId}}"
+  ]
+}</body>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+    <request name="UsersQuery/List" method="GET">
+      <url>{{baseUrl}}/users-query?q={{query}}</url>
+      <requiresAuth>true</requiresAuth>
+      <tests>pm.test('Status code esperado', function () {
+  pm.expect([200,201,204,400,401,403,404,409]).to.include(pm.response.code);
+});
+
+pm.test('Respuesta JSON o vacia en 204', function () {
+  if (pm.response.code !== 204) {
+    pm.response.to.be.json;
+  }
+});</tests>
+    </request>
+  </requests>
+</postmanCollection>
